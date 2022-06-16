@@ -3,11 +3,10 @@
 	"publisher": "qinkuan",
 	"displayName": "JsonToModel",
 	"description": "JsonToModel,Support dart",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"author": {
 		"name": "光明哨兵-格雷福斯"
 	},
-	
 	"engines": {
 		"vscode": "^1.65.0"
 	},
@@ -69,11 +68,11 @@
 	},
 	"license": "SEE LICENSE IN LICENSE.txt",
 	"bugs": {
-	"url": "https://github.com/Gordon2780/Jsontomodel/issues"
+		"url": "https://github.com/Gordon2780/Jsontomodel/issues"
 	},
 	"repository": {
-	"type": "git",
-	"url": "https://github.com/Gordon2780/Jsontomodel"
+		"type": "git",
+		"url": "https://github.com/Gordon2780/Jsontomodel"
 	},
 	"homepage": "https://github.com/Gordon2780/Jsontomodel#readme"
 }
