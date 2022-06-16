@@ -66,5 +66,14 @@
 		"mocha": "^9.2.1",
 		"typescript": "^4.5.5",
 		"@vscode/test-electron": "^2.1.2"
-	}
+	},
+	"license": "SEE LICENSE IN LICENSE.txt",
+	"bugs": {
+	"url": "https://github.com/Gordon2780/Jsontomodel/issues"
+	},
+	"repository": {
+	"type": "git",
+	"url": "https://github.com/Gordon2780/Jsontomodel"
+	},
+	"homepage": "https://github.com/Gordon2780/Jsontomodel#readme"
 }
