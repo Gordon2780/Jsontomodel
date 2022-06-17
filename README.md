@@ -20,3 +20,4 @@
 
 ![image](https://github.com/Gordon2780/Jsontomodel/blob/main/assets/example.gif)
 
+<img src ="./assets/example.gif"/>
