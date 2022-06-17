@@ -3,7 +3,7 @@
 	"publisher": "qinkuan",
 	"displayName": "JsonToModel",
 	"description": "JsonToModel,Support dart",
-	"version": "0.0.9",
+	"version": "0.0.10",
 	"author": {
 		"name": "光明哨兵-格雷福斯"
 	},
@@ -35,7 +35,8 @@
 				"key": "ctrl+.",
 				"mac": "cmd+.",
 				"when": "editorTextFocus"
-			},{
+			},
+			{
 				"command": "extension.json-to-model-file",
 				"key": "ctrl+f3",
 				"mac": "cmd+3",
@@ -55,15 +56,22 @@
 					"group": "navigation"
 				}
 			],
-			"editor/title/context": [
-			]
+			"editor/title/context": []
 		},
-		"configuration":{
+		"configuration": {
 			"title": "JSON转模型",
 			"properties": {
 				"JSONToModel.method-obj": {
 					"type": "object",
-					"default": {"return":"int","name":"my_func","params":["String params","Map params2"],"imp":"int a = 1;\n    int b = 2;\n\n    return a + b;"},
+					"default": {
+						"return": "int",
+						"name": "my_func",
+						"params": [
+							"String params",
+							"Map params2"
+						],
+						"imp": "int a = 1;\n    int b = 2;\n\n    return a + b;"
+					},
 					"description": "为每个模型添加一个方法。以json输入，方法名单词需下划线连接 \n例子：\n   {\n  \"return\": \"int\", 返回类型 \n  \"name\": \"my_func\",  方法名 \n  \"params\": [\n   \"String params1\", 参数1 \n\"Map params2\", 参数2 \n],\n\"imp\":\"int a = 1; int b = 2; return a + b;\"\n}"
 				},
 				"JSONToModel.method-string": {
