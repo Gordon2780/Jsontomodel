@@ -18,6 +18,6 @@
 
 <br>3、右键选择json转模型文件，或快捷键mac: command+3 win:ctrl+f3即可
 
-<!-- ![image](https://github.com/Gordon2780/Jsontomodel/blob/main/assets/example.gif) -->
+![example](https://github.com/Gordon2780/Jsontomodel/blob/main/assets/example.gif)
 
-<img src ="./assets/example.gif"/>
+<!-- <img src ="./assets/example.gif"/> -->
