@@ -1,29 +1,67 @@
 // @ts-nocheck
 const vscode = require('vscode');
 
+var methodName = 'safety'
+const configuration = vscode.workspace.getConfiguration();
+var method = ''
+
+
 module.exports = function(context) {
-    // 注册HelloWord命令
+
+    configMethod()
+    
+    // 注册json-to-model-file命令
     context.subscriptions.push(vscode.commands.registerCommand('extension.json-to-model-file', () => {
-
-        vscode.window.showInformationMessage('Json转模型文件');
-
         vscode.window.activeTextEditor.edit(editBuilder => {
-            const fileName = getFileName();
-            const jsonText = vscode.window.activeTextEditor.document.getText();
-            try {
-                var jsonBbject = JSON.parse(jsonText);
-            } catch(e) {
-                vscode.window.showInformationMessage(`Json转模型文件：json格式错误 ${e}`); // error in the above string (in this case, yes)!
-            }
-            var result =  parseObject(jsonBbject,fileName);
-            console.log("结果：" + result );
-            // 从开始到结束，全量替换
-            const end = new vscode.Position(vscode.window.activeTextEditor.document.lineCount + 1, 0);
-            editBuilder.replace(new vscode.Range(new vscode.Position(0, 0), end), result);
+            starJsonToModel(editBuilder);
         });
     }));
-
 };
+
+
+
+/// 配置用户方法
+function configMethod(){
+
+    let methodString = configuration.get('JSONToModel.method-string')
+    if (methodString.length > 0) {
+        method = methodString
+    }else {
+        let methodObj = configuration.get('JSONToModel.method-obj');
+        let methodName = methodObj['name']
+        if(methodName != "myfunc" && methodName.length> 0) {
+            var ret = methodObj['return']
+            if (ret.length == 0 || ret == '') {
+                ret = 'void'
+            }
+            let mName = replacePropertyName(methodObj['name'])
+            
+            method = `\n  ${ret} ${mName}(${methodObj['params'].join(',')}) {\n    ${methodObj['imp']} \n  }\n\n`
+        }
+    }
+}
+
+
+function starJsonToModel(editBuilder){
+    
+    if (!configuration.get('JSONToModel.safe')) {
+        methodName = 'safe'
+    }
+
+    const fileName = getFileName();
+    const jsonText = vscode.window.activeTextEditor.document.getText();
+    try {
+        var jsonBbject = JSON.parse(jsonText);
+    } catch(e) {
+        vscode.window.showInformationMessage(`Json转模型文件：json格式错误 ${e}`); // error in the above string (in this case, yes)!
+    }
+    var result =  parseObject(jsonBbject,fileName);
+    console.log("转换结果：" + result );
+    // 从开始到结束，全量替换
+    const end = new vscode.Position(vscode.window.activeTextEditor.document.lineCount + 1, 0);
+    editBuilder.replace(new vscode.Range(new vscode.Position(0, 0), end), result);
+    vscode.window.showInformationMessage('Json转模型文件');
+}
 
 /// 获取根文件名字
 function getFileName(){
@@ -57,33 +95,44 @@ function createClass(className,isRoot) {
     return attString ;
 }
 
-/// 创建初始化方法
+/// 创建方法
 function createMethod(keyName,object){
     var attString = `\n  ${keyName}();\n\n  ${keyName}.fromJson(Map json) {\n`
     var keys = Object.keys(object);
     var values = Object.values(object);
-    let methodName = 'safety'
+    
     for (let index = 0; index < values.length; index++) {
         const value = values[index]
         const key = keys[index]
         if (isArray(value)) {
+            let propertyName = replacePropertyName(key)
             var modelName = firstUpperWord(key)
                 attString += `    List items = json['${key}'] ?? [];\n`
                 attString += `    for (var item in items) {\n`
             if (isAllEqual(value) && arrayIsObject(value)) {
-                attString += `      ${key}.add(${modelName}Model.fromJson(${methodName}(<String, dynamic>{}, item)));\n    }\n`
+                attString += `      ${propertyName}.add(${modelName}Model.fromJson(${methodName}(<String, dynamic>{}, item)));\n    }\n`
             }else{
-                attString += `      ///my code... \n        ${key}.add(item);\n    }\n`
+                attString += `      ///my code... \n        ${propertyName}.add(item);\n    }\n`
             }
         }else if (isObject(value)) {
             var modelName = firstUpperWord(key)
-            attString += `    ${key} = ${modelName}Model.fromJson(${methodName}(<String, dynamic>{}, json['${key}']));\n`
+            let propertyName = replacePropertyName(key)
+            let reModelName = replacePropertyName(modelName)
+            attString += `    ${propertyName} = ${reModelName}Model.fromJson(${methodName}(<String, dynamic>{}, json['${key}']));\n`
         }else{
-            attString += `    ${key} = ${methodName}(${key}, json['${key}']);\n`
+            let propertyName = replacePropertyName(key)
+            attString += `    ${propertyName} = ${methodName}(${propertyName}, json['${key}']);\n`
         }
     }
     attString += '\n  }\n';
-    attString+= `\n  dynamic safety(dynamic oldValue, dynamic newValue) {\n    if (oldValue.runtimeType == newValue.runtimeType) { \n      return newValue;\n    }\n    return oldValue; \n  }\n\n`
+    if ( methodName == 'safety') {
+        attString+= `\n  T safety<T>(dynamic oldValue, dynamic newValue) {\n    if (oldValue.runtimeType == newValue.runtimeType) { \n      return newValue;\n    }\n    return oldValue; \n  }\n\n` 
+    }
+
+    
+    if (method.length > 0) {
+        attString += method
+    }
     return attString
 }
 
@@ -96,16 +145,21 @@ function createProperty(fileName,object){
         for (let index = 0; index < keys.length; index++) {
             var keyName = keys[index];
             var value = values[index];
+            
             var modelName = firstUpperWord(keyName)
             className = `${modelName}Model`
+            
             //添加属性
-            attString += createPropertyString(keyName,value);
+            attString += createPropertyString(keyName,value);  
+            
             //添加方法
             if (index == keys.length -1) {
                 attString += createMethod(fileName,object)
             }
             // 添加类
             if (isObject(value)) {
+                className = replacePropertyName(modelName)
+                className = `${className}Model`
                 attString += createClass(className);
                 attString += createProperty(className,value);
             }
@@ -115,6 +169,8 @@ function createProperty(fileName,object){
                 if (isAllEqual(value)) {
                     var firstObject = value[0]
                     if (isObject(firstObject)) {
+                        modelName = replacePropertyName(keyName)
+                        className = `${modelName}Model`
                         attString += createClass(className)
                         attString += createProperty(className,firstObject);
                         } 
@@ -122,7 +178,8 @@ function createProperty(fileName,object){
                     for (let index = 0; index < value.length; index++) {
                         const element = value[index];
                         if (isObject(element)) {
-                            className = `${modelName}Model${index}`
+                            let reModelName = replacePropertyName(modelName)
+                            className = `${reModelName}Model${index}`
                             attString += createClass(className)
                             attString += createProperty(className,element);
                             } 
@@ -136,31 +193,27 @@ function createProperty(fileName,object){
 // 创建属性字符串
 function createPropertyString(key,value){
     var attString = '\n';
+    let propertyName = replacePropertyName(key)
     if (isBool(value)) {
-        let str = [' ','bool',key,'=','false;','\n'].join(' ')
-        attString += str;
+        attString += `  bool ${propertyName} = false;\n`;
     }else if(isNumber(value)){
-        let str = [' ','int',key,'=','0;','\n'].join(' ')
-        attString += str;
+        attString += `  int ${propertyName} = 0;\n`;
     }else if (isString(value)) {
-        let str = [' ','String',key,'=',"'';",'\n'].join(' ')
-        attString += str;
+        attString += `  String ${propertyName} = '';\n`;
     }else if ( isArray(value)){
         if (isAllEqual(value) && arrayIsObject(value)) {
             var className = firstUpperWord(key)
             var classNameModel = `${className}Model`;
-            attString += `  List<${classNameModel}> ${key} = [];\n`
+            attString += `  List<${classNameModel}> ${propertyName} = [];\n`
         }else{
-            attString += `  List ${key} = [];\n`
+            attString += `  List ${propertyName} = [];\n`
         }
     }else if (isObject(value)){
         let className = firstUpperWord(key)
-        let classNameModel = `${className}Model`;
-        let str = [' ',classNameModel,key,'=',`${classNameModel}();`,'\n'].join(' ')
-        attString += str;
+        let classNameModel = replacePropertyName(className)
+        attString += `  ${classNameModel}Model ${propertyName} = ${classNameModel}Model();\n`;
     }else {
-        let str = [' ','var',key,'=',value,';','\n'].join(' ')
-        attString += str;
+        attString += `  var ${propertyName} = ${value};\n`;
     }
     return attString ;
 }
@@ -261,11 +314,28 @@ function arrayIsObject(array){
     }
 }
 
+/// 属性命名转换下划线转驼峰
+function replacePropertyName(word){
+    if (word.indexOf("_") != -1) {
+        let array = word.split('_');
+        if (array.length > 1) {
+        var name = array[0]
+        for (let index = 1; index < array.length; index++) {
+            const element = array[index];
+            name += firstUpperWord(element);
+            }
+            return name 
+        }
+    }
+    return word;
+}
 
+/// 首字母大写
 function firstUpperWord(word){
     var lowerWord = word.toLowerCase();
     return lowerWord.replace(lowerWord.charAt(0),lowerWord.charAt(0).toUpperCase());
 }
+
 
 function isBool(value){
     return typeof value === 'boolean';

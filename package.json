@@ -17,16 +17,25 @@
 	"activationEvents": [
 		"*"
 	],
-	"main": "./extension.js",
+	"main": "./scr/extension.js",
 	"contributes": {
 		"commands": [
 			{
+				"command": "extension.hump-named-file",
+				"title": "驼峰式重命名"
+			},
+			{
 				"command": "extension.json-to-model-file",
-				"title": "json转Dart模型"
+				"title": "Json转Dart模型"
 			}
 		],
 		"keybindings": [
 			{
+				"command": "extension.hump-named-file",
+				"key": "ctrl+.",
+				"mac": "cmd+.",
+				"when": "editorTextFocus"
+			},{
 				"command": "extension.json-to-model-file",
 				"key": "ctrl+f3",
 				"mac": "cmd+3",
@@ -37,17 +46,37 @@
 			"editor/context": [
 				{
 					"when": "editorFocus",
+					"command": "extension.hump-named-file",
+					"group": "navigation"
+				},
+				{
+					"when": "editorFocus",
 					"command": "extension.json-to-model-file",
 					"group": "navigation"
 				}
 			],
 			"editor/title/context": [
-				{
-					"when": "resourceLangId == javascript",
-					"command": "demo.menu",
-					"group": "navigation"
-				}
 			]
+		},
+		"configuration":{
+			"title": "JSON转模型",
+			"properties": {
+				"JSONToModel.method-obj": {
+					"type": "object",
+					"default": {"return":"int","name":"my_func","params":["String params","Map params2"],"imp":"int a = 1;\n    int b = 2;\n\n    return a + b;"},
+					"description": "为每个模型添加一个方法。以json输入，方法名单词需下划线连接 \n例子：\n   {\n  \"return\": \"int\", 返回类型 \n  \"name\": \"my_func\",  方法名 \n  \"params\": [\n   \"String params1\", 参数1 \n\"Map params2\", 参数2 \n],\n\"imp\":\"int a = 1; int b = 2; return a + b;\"\n}"
+				},
+				"JSONToModel.method-string": {
+					"type": "string",
+					"default": "",
+					"description": "为每个模型添加一个自定方法。以字符串输入"
+				},
+				"JSONToModel.safe": {
+					"type": "boolean",
+					"default": true,
+					"description": "添加安全取值方法"
+				}
+			}
 		}
 	},
 	"scripts": {

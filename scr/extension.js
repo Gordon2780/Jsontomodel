@@ -16,8 +16,9 @@ function activate(context) {
 	console.log('Congratulations, your extension "vscode-plugin:json to model" is now active! 扩展“vscode-plugin: json to model”已激活！');
 	console.log(vscode);
 
-	// @ts-ignore
 	require('./json-to-model-file')(context);// json转模型文件
+	require('./hump-named-file')(context);// 下划线转驼峰
+	require('./hover')(context);// 鼠标悬停提示
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with  registerCommand
 	// The commandId parameter must match the command field in package.json
