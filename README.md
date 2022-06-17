@@ -1,4 +1,10 @@
-# json-to-model README
+# JSON-TO-MODEL README
+
+# 使用
+
+![feature X](/assets/example.gif)
+![image](https://github.com/Gordon2780/Jsontomodel/blob/main/assets/example.gif)
+
 
 <br>"json-to-model". json格式数据转模型文件
 <br>目前只支持json 转 dart
@@ -18,8 +24,4 @@
 
 <br>3、右键选择json转模型文件，或快捷键mac: command+3 win:ctrl+f3即可
 
-<!-- ![image](https://github.com/Gordon2780/Jsontomodel/blob/main/assets/example.gif) -->
-![image](https://www.baidu.com/img/bd_logo1.png)
 
-
-<!-- <img src ="./assets/example.gif"/> -->
