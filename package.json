@@ -13,7 +13,7 @@
 	"categories": [
 		"Other"
 	],
-	"icon": "images/extension-icon.png",
+	"icon": "assets/extension-icon.png",
 	"activationEvents": [
 		"*"
 	],
