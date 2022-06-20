@@ -1,14 +1,15 @@
 // @ts-nocheck
 const vscode = require('vscode');
 
-var methodName = 'safety'
+var methodName = 'safe'
 const configuration = vscode.workspace.getConfiguration();
 var method = ''
+const enableSafe = configuration.get('JSONToModel.safe')
 
 
 module.exports = function(context) {
 
-    configMethod()
+    userConfig()
     
     // 注册json-to-model-file命令
     context.subscriptions.push(vscode.commands.registerCommand('extension.json-to-model-file', () => {
@@ -21,22 +22,22 @@ module.exports = function(context) {
 
 
 /// 配置用户方法
-function configMethod(){
+function userConfig(){
 
     let methodString = configuration.get('JSONToModel.method-string')
     if (methodString.length > 0) {
         method = methodString
     }else {
-        let methodObj = configuration.get('JSONToModel.method-obj');
-        let methodName = methodObj['name']
-        if(methodName != "myfunc" && methodName.length> 0) {
-            var ret = methodObj['return']
+        let usrMethodObj = configuration.get('JSONToModel.method-obj');
+        let usrMethodName = usrMethodObj['name']
+        if(usrMethodName != "my_func" && methodName.length> 0) {
+            var ret = usrMethodObj['return']
             if (ret.length == 0 || ret == '') {
                 ret = 'void'
             }
-            let mName = replacePropertyName(methodObj['name'])
+            let mName = replacePropertyName(usrMethodObj['name'])
             
-            method = `\n  ${ret} ${mName}(${methodObj['params'].join(',')}) {\n    ${methodObj['imp']} \n  }\n\n`
+            method = `\n  ${ret} ${mName}(${usrMethodObj['params'].join(',')}) {\n    ${usrMethodObj['imp']} \n  }\n\n`
         }
     }
 }
@@ -44,10 +45,6 @@ function configMethod(){
 
 function starJsonToModel(editBuilder){
     
-    if (!configuration.get('JSONToModel.safe')) {
-        methodName = 'safe'
-    }
-
     const fileName = getFileName();
     const jsonText = vscode.window.activeTextEditor.document.getText();
     try {
@@ -107,8 +104,8 @@ function createMethod(keyName,object){
         if (isArray(value)) {
             let propertyName = replacePropertyName(key)
             var modelName = firstUpperWord(key)
-                attString += `    List items = json['${key}'] ?? [];\n`
-                attString += `    for (var item in items) {\n`
+                attString += `    List ${propertyName}Items = json['${key}'] ?? [];\n`
+                attString += `    for (var item in ${propertyName}Items) {\n`
             if (isAllEqual(value) && arrayIsObject(value)) {
                 attString += `      ${propertyName}.add(${modelName}Model.fromJson(${methodName}(<String, dynamic>{}, item)));\n    }\n`
             }else{
@@ -125,8 +122,8 @@ function createMethod(keyName,object){
         }
     }
     attString += '\n  }\n';
-    if ( methodName == 'safety') {
-        attString+= `\n  T safety<T>(dynamic oldValue, dynamic newValue) {\n    if (oldValue.runtimeType == newValue.runtimeType) { \n      return newValue;\n    }\n    return oldValue; \n  }\n\n` 
+    if (enableSafe) {
+        attString+= `\n  T ${methodName}<T>(dynamic oldValue, dynamic newValue) {\n    if (oldValue.runtimeType == newValue.runtimeType) { \n      return newValue;\n    }\n    return oldValue; \n  }\n\n` 
     }
 
     
@@ -142,6 +139,8 @@ function createProperty(fileName,object){
         var className = fileName ;
         var keys = Object.keys(object);
         var values = Object.values(object);
+        var waitAddClassDict = new Array();
+        var waitAddObjcDict = new Array();
         for (let index = 0; index < keys.length; index++) {
             var keyName = keys[index];
             var value = values[index];
@@ -158,37 +157,110 @@ function createProperty(fileName,object){
             }
             // 添加类
             if (isObject(value)) {
-                className = replacePropertyName(modelName)
-                className = `${className}Model`
-                attString += createClass(className);
-                attString += createProperty(className,value);
+                waitAddObjcDict[keyName] = value
             }
 
-            // 添加数组模型
+            // // 添加类
+            // if (isObject(value)) {
+            //     className = replacePropertyName(modelName)
+            //     className = `${className}Model`
+            //     attString += createClass(className);
+            //     attString += createProperty(className,value);
+            // }
+
             if (isArray(value) && value.length > 0) {
-                if (isAllEqual(value)) {
-                    var firstObject = value[0]
-                    if (isObject(firstObject)) {
-                        modelName = replacePropertyName(keyName)
-                        className = `${modelName}Model`
-                        attString += createClass(className)
-                        attString += createProperty(className,firstObject);
-                        } 
-                }else{
-                    for (let index = 0; index < value.length; index++) {
-                        const element = value[index];
-                        if (isObject(element)) {
-                            let reModelName = replacePropertyName(modelName)
-                            className = `${reModelName}Model${index}`
-                            attString += createClass(className)
-                            attString += createProperty(className,element);
-                            } 
-                        }
-                    }
-                }
+                waitAddClassDict[keyName] = value
+            }
+            
+            // 添加数组内模型类
+            // if (isArray(value) && value.length > 0) {
+            //     if (isAllEqual(value)) {
+            //         var firstObject = value[0]
+            //         if (isObject(firstObject)) {
+            //             let  newKeyName = firstUpperWord(keyName)
+            //             modelName = replacePropertyName(newKeyName)
+            //             className = `${modelName}Model`
+            //             attString += createClass(className)
+            //             attString += createProperty(className,firstObject);
+            //             } 
+            //     }else{
+            //         for (let index = 0; index < value.length; index++) {
+            //             const element = value[index];
+            //             if (isObject(element)) {
+            //                 let reModelName = replacePropertyName(modelName)
+            //                 className = `${reModelName}Model${index}`
+            //                 attString += createClass(className)
+            //                 attString += createProperty(className,element);
+            //                 } 
+            //             }
+            //         }
+            //     }
         }
+
+        /// 添加模型类
+        let objKeys = Object.keys(waitAddObjcDict)
+        if (objKeys.length > 0) {
+            let objValues = Object.values(waitAddObjcDict)
+            for (let index = 0; index < objKeys.length; index++) {
+                let key = objKeys[index];
+                let value = objValues[index];
+                attString += addClass(value,key)
+            }
+        }
+
+        /// 添加数组内模型类
+        let arrayKeys = Object.keys(waitAddClassDict)
+        if (arrayKeys.length > 0) {
+            let arrayValues = Object.values(waitAddClassDict)
+            for (let index = 0; index < arrayKeys.length; index++) {
+                let key = arrayKeys[index];
+                let value = arrayValues[index]
+                attString += addArrayClass(value,key)
+            }
+        }
+    
     return attString;
 }
+
+
+function addClass(value,keyName){
+    var attString = ''
+    var modelName = replacePropertyName(firstUpperWord(keyName))
+    let className = `${modelName}Model`
+    attString += createClass(className);
+    attString += createProperty(className,value);
+    return attString
+}
+
+/// 添加数组内模型类
+function addArrayClass(value,keyName){
+    var attString = ''
+    var className = ''
+    var modelName = ''
+    if (isArray(value) && value.length > 0) {
+        if (isAllEqual(value)) {
+            var firstObject = value[0]
+            if (isObject(firstObject)) {
+                modelName = replacePropertyName(firstUpperWord(keyName))
+                className = `${modelName}Model`
+                attString += createClass(className)
+                attString += createProperty(className,firstObject);
+                } 
+        }else{
+            for (let index = 0; index < value.length; index++) {
+                const element = value[index];
+                if (isObject(element)) {
+                    modelName = replacePropertyName(firstUpperWord(keyName))
+                    className = `${modelName}Model${index}`
+                    attString += createClass(className)
+                    attString += createProperty(className,element);
+                    } 
+                }
+            }
+        }
+    return attString
+}
+
 
 // 创建属性字符串
 function createPropertyString(key,value){
@@ -197,7 +269,11 @@ function createPropertyString(key,value){
     if (isBool(value)) {
         attString += `  bool ${propertyName} = false;\n`;
     }else if(isNumber(value)){
-        attString += `  int ${propertyName} = 0;\n`;
+        if (value.toString().indexOf(".") != -1) {
+            attString += `  double ${propertyName} = 0;\n`;
+        }else {
+            attString += `  int ${propertyName} = 0;\n`; 
+        }
     }else if (isString(value)) {
         attString += `  String ${propertyName} = '';\n`;
     }else if ( isArray(value)){
