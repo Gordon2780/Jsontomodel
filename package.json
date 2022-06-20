@@ -3,9 +3,9 @@
 	"publisher": "qinkuan",
 	"displayName": "JsonToModel",
 	"description": "JsonToModel,Support dart",
-	"version": "0.0.13",
+	"version": "0.0.15",
 	"author": {
-		"name": "光明哨兵-格雷福斯"
+		"name": "qink"
 	},
 	"engines": {
 		"vscode": "^1.65.0"
