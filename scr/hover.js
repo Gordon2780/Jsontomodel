@@ -11,7 +11,7 @@ onDidChangeActiveTextEditor((textEditor) => {
 })
 module.exports = function(context) {
     // 注册鼠标悬停提示
-    console.log('注册鼠标悬停提示方法');
+    // console.log('注册鼠标悬停提示方法');
     // let languages = vscode.languages.registerHoverProvider('*', {
     //         provideHover(document, position, token) {
     //         const selected = document.getText(active.selection);

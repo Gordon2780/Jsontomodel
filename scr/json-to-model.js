@@ -1,4 +1,3 @@
-// @ts-nocheck
 const vscode = require('vscode');
 
 var methodName = 'safe'
@@ -9,20 +8,26 @@ const enableSafe = configuration.get('JSONToModel.safe')
 
 module.exports = function(context) {
 
-    userConfig()
-    
-    // 注册json-to-model-file命令
-    context.subscriptions.push(vscode.commands.registerCommand('extension.json-to-model-file', () => {
+    // 设置用户配置
+    setUserConfig()
+
+    // 注册并实现json-to-model命令回调
+    let command = vscode.commands.registerCommand('extension.json-to-model', () => {
+        /// 获取当前编辑窗口
         vscode.window.activeTextEditor.edit(editBuilder => {
+           /// 开始JSON转模型
             starJsonToModel(editBuilder);
         });
-    }));
+    })
+    
+    // 订阅json-to-model命令
+    context.subscriptions.push(command);
 };
 
 
 
 /// 配置用户方法
-function userConfig(){
+function setUserConfig(){
 
     let methodString = configuration.get('JSONToModel.method-string')
     if (methodString.length > 0) {
@@ -42,7 +47,10 @@ function userConfig(){
     }
 }
 
-
+/// 开始JSON转模型
+/**
+ * @param {vscode.TextEditorEdit} editBuilder
+ */
 function starJsonToModel(editBuilder){
     
     const fileName = getFileName();
@@ -50,14 +58,14 @@ function starJsonToModel(editBuilder){
     try {
         var jsonBbject = JSON.parse(jsonText);
     } catch(e) {
-        vscode.window.showInformationMessage(`Json转模型文件：json格式错误 ${e}`); // error in the above string (in this case, yes)!
+        vscode.window.showInformationMessage(`JSON转模型文件：json格式错误 ${e}`);
     }
     var result =  parseObject(jsonBbject,fileName);
     console.log("转换结果：" + result );
     // 从开始到结束，全量替换
     const end = new vscode.Position(vscode.window.activeTextEditor.document.lineCount + 1, 0);
     editBuilder.replace(new vscode.Range(new vscode.Position(0, 0), end), result);
-    vscode.window.showInformationMessage('Json转模型文件');
+    vscode.window.showInformationMessage('JSON转模型文件');
 }
 
 /// 获取根文件名字
@@ -78,6 +86,10 @@ function getFileName(){
 }
 
 /// 解析对象
+/**
+ * @param {any} value
+ * @param {string} fileName
+ */
 function parseObject(value,fileName){
     var attString = '';
     attString += createClass(fileName,true);
@@ -86,6 +98,10 @@ function parseObject(value,fileName){
 }
 
 ///创建类
+/**
+ * @param {string} className
+ * @param {boolean} [isRoot]
+ */
 function createClass(className,isRoot) {
     var attString = isRoot ? '': "}\n";
     attString += `\nclass ${className} {`
@@ -93,6 +109,10 @@ function createClass(className,isRoot) {
 }
 
 /// 创建方法
+/**
+ * @param {any} keyName
+ * @param {{ [s: string]: any; } | ArrayLike<any>} object
+ */
 function createMethod(keyName,object){
     var attString = `\n  ${keyName}();\n\n  ${keyName}.fromJson(Map json) {\n`
     var keys = Object.keys(object);
@@ -134,9 +154,13 @@ function createMethod(keyName,object){
 }
 
 // 创建属性
+/**
+ * @param {string} fileName
+ * @param {{ [s: string]: any; }} object
+ */
 function createProperty(fileName,object){
         var attString = '';
-        var className = fileName ;
+        // var className = fileName ;
         var keys = Object.keys(object);
         var values = Object.values(object);
         var waitAddClassDict = new Array();
@@ -145,9 +169,6 @@ function createProperty(fileName,object){
             var keyName = keys[index];
             var value = values[index];
             
-            var modelName = firstUpperWord(keyName)
-            className = `${modelName}Model`
-            
             //添加属性
             attString += createPropertyString(keyName,value);  
             
@@ -155,49 +176,17 @@ function createProperty(fileName,object){
             if (index == keys.length -1) {
                 attString += createMethod(fileName,object)
             }
-            // 添加类
+            // 储存对象
             if (isObject(value)) {
                 waitAddObjcDict[keyName] = value
             }
-
-            // // 添加类
-            // if (isObject(value)) {
-            //     className = replacePropertyName(modelName)
-            //     className = `${className}Model`
-            //     attString += createClass(className);
-            //     attString += createProperty(className,value);
-            // }
-
+            // 存储数组嵌套模型
             if (isArray(value) && value.length > 0) {
                 waitAddClassDict[keyName] = value
             }
-            
-            // 添加数组内模型类
-            // if (isArray(value) && value.length > 0) {
-            //     if (isAllEqual(value)) {
-            //         var firstObject = value[0]
-            //         if (isObject(firstObject)) {
-            //             let  newKeyName = firstUpperWord(keyName)
-            //             modelName = replacePropertyName(newKeyName)
-            //             className = `${modelName}Model`
-            //             attString += createClass(className)
-            //             attString += createProperty(className,firstObject);
-            //             } 
-            //     }else{
-            //         for (let index = 0; index < value.length; index++) {
-            //             const element = value[index];
-            //             if (isObject(element)) {
-            //                 let reModelName = replacePropertyName(modelName)
-            //                 className = `${reModelName}Model${index}`
-            //                 attString += createClass(className)
-            //                 attString += createProperty(className,element);
-            //                 } 
-            //             }
-            //         }
-            //     }
         }
 
-        /// 添加模型类
+        /// 添加类
         let objKeys = Object.keys(waitAddObjcDict)
         if (objKeys.length > 0) {
             let objValues = Object.values(waitAddObjcDict)
@@ -208,12 +197,12 @@ function createProperty(fileName,object){
             }
         }
 
-        /// 添加数组内模型类
-        let arrayKeys = Object.keys(waitAddClassDict)
-        if (arrayKeys.length > 0) {
+        /// 添加数组内的类
+        let arrayObjKeys = Object.keys(waitAddClassDict)
+        if (arrayObjKeys.length > 0) {
             let arrayValues = Object.values(waitAddClassDict)
-            for (let index = 0; index < arrayKeys.length; index++) {
-                let key = arrayKeys[index];
+            for (let index = 0; index < arrayObjKeys.length; index++) {
+                let key = arrayObjKeys[index];
                 let value = arrayValues[index]
                 attString += addArrayClass(value,key)
             }
@@ -223,6 +212,10 @@ function createProperty(fileName,object){
 }
 
 
+/**
+ * @param {{ [s: string]: any; }} value
+ * @param {string} keyName
+ */
 function addClass(value,keyName){
     var attString = ''
     var modelName = replacePropertyName(firstUpperWord(keyName))
@@ -233,6 +226,10 @@ function addClass(value,keyName){
 }
 
 /// 添加数组内模型类
+/**
+ * @param {string | any[]} value
+ * @param {string} keyName
+ */
 function addArrayClass(value,keyName){
     var attString = ''
     var className = ''
@@ -295,6 +292,9 @@ function createPropertyString(key,value){
 }
 
 /// 数组内元素是否相等
+/**
+ * @param {string | any[]} array
+ */
 function isAllEqual(array){
     var bool = true
     if (array.length > 0) {
@@ -320,6 +320,10 @@ function isAllEqual(array){
 }
 
 /// 验证两个object 是否相同
+/**
+ * @param {{ [x: string]: any; }} obj
+ * @param {{ [x: string]: any; }} newObj
+ */
 function objSame (obj,newObj) {
     let bol = true;
     if (Object.keys(obj).length != Object.keys(newObj).length) {
@@ -352,6 +356,10 @@ function objSame (obj,newObj) {
 }
 
 /// 验证两个数组是否相同
+/**
+ * @param {string | any[]} arr
+ * @param {string | any[]} newArr
+ */
 function arrSame (arr,newArr) {
     let bol = true;
     if (arr.length != newArr.length) {
@@ -378,6 +386,9 @@ function arrSame (arr,newArr) {
 }
 
 /// 数组内部元素类型非对象或数组
+/**
+ * @param {{ toString: () => string | string[]; }} array
+ */
 function arrayIsObject(array){
     for(let item in array) {
         if (isArray(item)) {
@@ -391,6 +402,9 @@ function arrayIsObject(array){
 }
 
 /// 属性命名转换下划线转驼峰
+/**
+ * @param {string} word
+ */
 function replacePropertyName(word){
     if (word.indexOf("_") != -1) {
         let array = word.split('_');
@@ -407,11 +421,13 @@ function replacePropertyName(word){
 }
 
 /// 首字母大写
+/**
+ * @param {string} word
+ */
 function firstUpperWord(word){
     var lowerWord = word.toLowerCase();
     return lowerWord.replace(lowerWord.charAt(0),lowerWord.charAt(0).toUpperCase());
 }
-
 
 function isBool(value){
     return typeof value === 'boolean';

@@ -1,40 +1,19 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-
-/**
- * 插件被激活时触发，所有代码总入口
- * @param {*} context 插件上下文
- */
-function activate(context) {
-
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "vscode-plugin:json to model" is now active! 扩展“vscode-plugin: json to model”已激活！');
-	console.log(vscode);
-
-	require('./json-to-model-file')(context);// json转模型文件
-	require('./hump-named-file')(context);// 下划线转驼峰
-	require('./hover')(context);// 鼠标悬停提示
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with  registerCommand
-	// The commandId parameter must match the command field in package.json
-}
-
-
-/**
- * 插件被释放时触发
- */
-function deactivate() {
-	 // @ts-ignore
-	console.log('扩展“vscode-plugin: json to model”已被释放！')
-}
-
+// 代码入口
 module.exports = {
-	// @ts-ignore
 	activate,
 	deactivate
+}
+
+// 插件激活时触发
+function activate(context) {
+	console.log(`${vscode}: JSON转Dart模型插件激活！`);
+	require('./json-to-model')(context);// json转模型文件
+	require('./hump-named')(context);// 下划线转驼峰
+}
+
+// 插件释放时触发
+function deactivate() {
+	console.log(`${vscode}: JSON转Dart模型插件释放！`)
 }

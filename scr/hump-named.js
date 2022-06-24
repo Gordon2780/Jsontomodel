@@ -1,13 +1,13 @@
 const vscode = require('vscode');
 
-module.exports = function(context) {
+module.exports = function(/** @type {{ subscriptions: vscode.Disposable[]; }} */ context) {
     
-    let  command = vscode.commands.registerTextEditorCommand('extension.hump-named-file',function(textEditor,edit){
+    let  command = vscode.commands.registerTextEditorCommand('extension.hump-named',function(textEditor,edit){
         const text = textEditor.document.getText(textEditor.selection);
-        textEditor.revealRange
         console.log(`选中的文本是：${text}`);
-        const repText = replacePropertyName(text)
-        edit.replace(textEditor.selection.constructor( textEditor.selection.anchor,  textEditor.selection.active),repText)
+        const replacedString = replacePropertyName(text)
+        const originString = textEditor.selection.constructor( textEditor.selection.anchor,  textEditor.selection.active)
+        edit.replace(originString,replacedString)
 
     })
     // 注册hump-named-file命令
@@ -15,6 +15,9 @@ module.exports = function(context) {
 };
 
 /// 属性命名转换下划线转驼峰
+/**
+ * @param {string} word
+ */
 function replacePropertyName(word){
     if (!word) { return }
     if (word.indexOf("_") != -1) {
@@ -32,6 +35,9 @@ function replacePropertyName(word){
 }
 
 /// 首字母大写
+/**
+ * @param {string} word
+ */
 function firstUpperWord(word){
     if (!word) { return }
     var lowerWord = word.toLowerCase();

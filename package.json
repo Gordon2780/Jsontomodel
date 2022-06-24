@@ -21,23 +21,23 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "extension.hump-named-file",
+				"command": "extension.hump-named",
 				"title": "驼峰式重命名"
 			},
 			{
-				"command": "extension.json-to-model-file",
+				"command": "extension.json-to-model",
 				"title": "Json转Dart模型"
 			}
 		],
 		"keybindings": [
 			{
-				"command": "extension.hump-named-file",
+				"command": "extension.hump-named",
 				"key": "ctrl+.",
 				"mac": "cmd+.",
 				"when": "editorTextFocus"
 			},
 			{
-				"command": "extension.json-to-model-file",
+				"command": "extension.json-to-model",
 				"key": "ctrl+f3",
 				"mac": "cmd+3",
 				"when": "editorTextFocus"
@@ -47,12 +47,12 @@
 			"editor/context": [
 				{
 					"when": "editorFocus",
-					"command": "extension.hump-named-file",
+					"command": "extension.hump-named",
 					"group": "navigation"
 				},
 				{
 					"when": "editorFocus",
-					"command": "extension.json-to-model-file",
+					"command": "extension.json-to-model",
 					"group": "navigation"
 				}
 			],
