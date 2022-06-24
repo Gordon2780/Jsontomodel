@@ -3,7 +3,7 @@
 	"publisher": "qinkuan",
 	"displayName": "JsonToModel",
 	"description": "JsonToModel,Support dart",
-	"version": "0.0.15",
+	"version": "0.0.16",
 	"author": {
 		"name": "qink"
 	},
@@ -21,42 +21,49 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "extension.hump-named",
-				"title": "驼峰式重命名"
-			},
-			{
 				"command": "extension.json-to-model",
 				"title": "Json转Dart模型"
+			},
+			{
+				"command": "extension.hump-named",
+				"title": "驼峰式重命名"
 			}
 		],
 		"keybindings": [
-			{
-				"command": "extension.hump-named",
-				"key": "ctrl+.",
-				"mac": "cmd+.",
-				"when": "editorTextFocus"
-			},
 			{
 				"command": "extension.json-to-model",
 				"key": "ctrl+f3",
 				"mac": "cmd+3",
 				"when": "editorTextFocus"
+			},
+			{
+				"command": "extension.hump-named",
+				"key": "ctrl+.",
+				"mac": "cmd+.",
+				"when": "editorTextFocus"
 			}
+			
 		],
 		"menus": {
 			"editor/context": [
 				{
-					"when": "editorFocus",
-					"command": "extension.hump-named",
+					"when": "editorFocus && resourceLangId == dart",
+					"command": "extension.json-to-model",
 					"group": "navigation"
 				},
 				{
-					"when": "editorFocus",
-					"command": "extension.json-to-model",
+					"when": "editorFocus && resourceLangId == dart",
+					"command": "extension.hump-named",
 					"group": "navigation"
 				}
 			],
-			"editor/title/context": []
+			"editor/title/context": [],
+			"explorer/context": [
+                {
+                    "command": "extension.json-to-model",
+                    "group": "navigation"
+                }]
+			
 		},
 		"configuration": {
 			"title": "JSON转模型",
@@ -83,6 +90,11 @@
 					"type": "boolean",
 					"default": true,
 					"description": "添加安全取值方法"
+				},
+				"JSONToModel.print": {
+					"type": "boolean",
+					"default": false,
+					"description": "添加模型格式化打印"
 				}
 			}
 		}

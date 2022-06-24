@@ -4,6 +4,7 @@ var methodName = 'safe'
 const configuration = vscode.workspace.getConfiguration();
 var method = ''
 const enableSafe = configuration.get('JSONToModel.safe')
+const enalbePrint = configuration.get('JSONToModel.print')
 
 
 module.exports = function(context) {
@@ -117,16 +118,20 @@ function createMethod(keyName,object){
     var attString = `\n  ${keyName}();\n\n  ${keyName}.fromJson(Map json) {\n`
     var keys = Object.keys(object);
     var values = Object.values(object);
-    
+
+    var printStr = '\\n{'    
     for (let index = 0; index < values.length; index++) {
         const value = values[index]
         const key = keys[index]
+        
         if (isArray(value)) {
             let propertyName = replacePropertyName(key)
             var modelName = firstUpperWord(key)
+                printStr += `\\n    ${propertyName} = $${propertyName}`
                 attString += `    List ${propertyName}Items = json['${key}'] ?? [];\n`
                 attString += `    for (var item in ${propertyName}Items) {\n`
             if (isAllEqual(value) && arrayIsObject(value)) {
+                printStr += `\\n    ${propertyName} = $${propertyName}`
                 attString += `      ${propertyName}.add(${modelName}Model.fromJson(${methodName}(<String, dynamic>{}, item)));\n    }\n`
             }else{
                 attString += `      ///my code... \n        ${propertyName}.add(item);\n    }\n`
@@ -135,18 +140,24 @@ function createMethod(keyName,object){
             var modelName = firstUpperWord(key)
             let propertyName = replacePropertyName(key)
             let reModelName = replacePropertyName(modelName)
+            printStr += `\\n    ${propertyName} = $${propertyName}`
             attString += `    ${propertyName} = ${reModelName}Model.fromJson(${methodName}(<String, dynamic>{}, json['${key}']));\n`
         }else{
             let propertyName = replacePropertyName(key)
+            printStr += `\\n    ${propertyName} = $${propertyName}`
             attString += `    ${propertyName} = ${methodName}(${propertyName}, json['${key}']);\n`
         }
     }
     attString += '\n  }\n';
     if (enableSafe) {
-        attString+= `\n  T ${methodName}<T>(dynamic oldValue, dynamic newValue) {\n    if (oldValue.runtimeType == newValue.runtimeType) { \n      return newValue;\n    }\n    return oldValue; \n  }\n\n` 
+        attString += `\n  T ${methodName}<T>(dynamic oldValue, dynamic newValue) {\n    if (oldValue.runtimeType == newValue.runtimeType) { \n      return newValue;\n    }\n    return oldValue; \n  }\n\n` 
+    }
+    if (enalbePrint) {
+        printStr += '\\n}'
+        attString += `\n  @override\n  String toString() {\n    final rawString = super.toString();\n    return rawString + '${printStr}';\n    }`
     }
 
-    
+
     if (method.length > 0) {
         attString += method
     }
