@@ -3,7 +3,7 @@
 	"publisher": "qinkuan",
 	"displayName": "JsonToModel",
 	"description": "JsonToModel,Support dart",
-	"version": "0.0.17",
+	"version": "0.0.18",
 	"author": {
 		"name": "qink"
 	},
@@ -42,7 +42,6 @@
 				"mac": "shift+cmd+,",
 				"when": "editorTextFocus"
 			}
-			
 		],
 		"menus": {
 			"editor/context": [
@@ -59,11 +58,11 @@
 			],
 			"editor/title/context": [],
 			"explorer/context": [
-                {
-                    "command": "extension.json-to-model",
-                    "group": "navigation"
-                }]
-			
+				{
+					"command": "extension.json-to-model",
+					"group": "navigation"
+				}
+			]
 		},
 		"configuration": {
 			"title": "JSON转模型",
