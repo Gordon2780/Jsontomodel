@@ -3,7 +3,7 @@
 	"publisher": "qinkuan",
 	"displayName": "JsonToModel",
 	"description": "JsonToModel,Support dart",
-	"version": "0.0.16",
+	"version": "0.0.17",
 	"author": {
 		"name": "qink"
 	},
@@ -38,8 +38,8 @@
 			},
 			{
 				"command": "extension.hump-named",
-				"key": "ctrl+.",
-				"mac": "cmd+.",
+				"key": "shift+cmd+,",
+				"mac": "shift+cmd+,",
 				"when": "editorTextFocus"
 			}
 			
