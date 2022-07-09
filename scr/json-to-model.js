@@ -1,3 +1,4 @@
+const { close } = require('inspector');
 const vscode = require('vscode');
 
 var methodName = 'safe'
@@ -132,7 +133,7 @@ function createMethod(keyName,object){
                 attString += `    for (var item in ${propertyName}Items) {\n`
             if (isAllEqual(value) && arrayIsObject(value)) {
                 printStr += `\\n    ${propertyName} = $${propertyName}`
-                attString += `      ${propertyName}.add(${modelName}Model.fromJson(${methodName}(<String, dynamic>{}, item)));\n    }\n`
+                attString += `      ${propertyName}.add(${replacePropertyName(modelName)}Model.fromJson(${methodName}(<String, dynamic>{}, item)));\n    }\n`
             }else{
                 attString += `      ///my code... \n        ${propertyName}.add(item);\n    }\n`
             }
@@ -287,8 +288,8 @@ function createPropertyString(key,value){
     }else if ( isArray(value)){
         if (isAllEqual(value) && arrayIsObject(value)) {
             var className = firstUpperWord(key)
-            var classNameModel = `${className}Model`;
-            attString += `  List<${classNameModel}> ${propertyName} = [];\n`
+            var classNameModel = `${replacePropertyName(className)}Model`;
+            attString += `  List ${propertyName} = <${classNameModel}>[];\n`
         }else{
             attString += `  List ${propertyName} = [];\n`
         }
@@ -397,19 +398,15 @@ function arrSame (arr,newArr) {
 }
 
 /// 数组内部元素类型非对象或数组
-/**
- * @param {{ toString: () => string | string[]; }} array
- */
 function arrayIsObject(array){
-    for(let item in array) {
-        if (isArray(item)) {
-            return true
-        }else if (isObject(item)){
-            return true
-        }else{
-            return false
+    let isObjectOrArray = false;
+    for (let index = 0; index < array.length; index++) {
+        const element = array[index];
+        if (isArray(element) || isObject(element)) {
+            isObjectOrArray = true
         }
     }
+    return isObjectOrArray
 }
 
 /// 属性命名转换下划线转驼峰
