@@ -127,6 +127,7 @@ function createMethod(keyName,object){
         
         if (isArray(value)) {
             let propertyName = replacePropertyName(key)
+            propertyName = firstLowerWord(propertyName);
             var modelName = firstUpperWord(key)
                 printStr += `\\n    ${propertyName} = $${propertyName}`
                 attString += `    List ${propertyName}Items = json['${key}'] ?? [];\n`
@@ -140,11 +141,13 @@ function createMethod(keyName,object){
         }else if (isObject(value)) {
             var modelName = firstUpperWord(key)
             let propertyName = replacePropertyName(key)
+            propertyName = firstLowerWord(propertyName);
             let reModelName = replacePropertyName(modelName)
             printStr += `\\n    ${propertyName} = $${propertyName}`
             attString += `    ${propertyName} = ${reModelName}Model.fromJson(${methodName}(<String, dynamic>{}, json['${key}']));\n`
         }else{
             let propertyName = replacePropertyName(key)
+            propertyName = firstLowerWord(propertyName);
             printStr += `\\n    ${propertyName} = $${propertyName}`
             attString += `    ${propertyName} = ${methodName}(${propertyName}, json['${key}']);\n`
         }
@@ -275,6 +278,9 @@ function addArrayClass(value,keyName){
 function createPropertyString(key,value){
     var attString = '\n';
     let propertyName = replacePropertyName(key)
+    
+    propertyName = firstLowerWord(propertyName);
+
     if (isBool(value)) {
         attString += `  bool ${propertyName} = false;\n`;
     }else if(isNumber(value)){
@@ -297,10 +303,12 @@ function createPropertyString(key,value){
         let className = firstUpperWord(key)
         let classNameModel = replacePropertyName(className)
         attString += `  ${classNameModel}Model ${propertyName} = ${classNameModel}Model();\n`;
-    }else {
+    }else if (isNull(value)){
+        attString += `  var ${propertyName};\n`;
+    }else{
         attString += `  var ${propertyName} = ${value};\n`;
     }
-    return attString ;
+    return attString;
 }
 
 /// 数组内元素是否相等
@@ -437,6 +445,15 @@ function firstUpperWord(word){
     return lowerWord.replace(lowerWord.charAt(0),lowerWord.charAt(0).toUpperCase());
 }
 
+///首字母小写
+function firstLowerWord(word){
+    if (word.charAt(0) >= 'A' && word.charAt(0) <= 'Z') {
+        return word.replace(word.charAt(0),word.charAt(0).toLowerCase());
+    }
+    return word
+}
+
+
 function isBool(value){
     return typeof value === 'boolean';
 }
@@ -454,7 +471,14 @@ function isArray(value){
 }
 
 function isObject(value){
+    if (isNull(value)) {
+        return false
+    }
     return value.constructor.toString().indexOf("Object")>-1;
+}
+
+function isNull(value){
+    return value === null;
 }
 
 
