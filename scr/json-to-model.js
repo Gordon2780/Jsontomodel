@@ -317,24 +317,22 @@ function createPropertyString(key,value){
  */
 function isAllEqual(array){
     var bool = true
-    if (array.length > 0) {
+    if (array.length > 1) {
         let firstObject = array[0]
-        for (const item of array) {
-            if (isObject(item)) {
-                if (!objSame(item,firstObject)) {
+        for (let index = 1; index < array.length; index++) {
+            const nexObject  = array[index];
+            if (isObject(nexObject)) {
+                if (!objSame(nexObject,firstObject)) {
                     bool = false
                     break;
                 }
-            }else if (isArray(item)) {
-                bool = arrSame(item,firstObject)
-                if (!bool) {
+            }else if (isArray(nexObject)) {
+                if (!arrSame(nexObject,firstObject)) {
+                    bool = false
                     break;
                 }
-            }else {
-                bool = item !== firstObject;
             }
         }
-        return bool
     }
     return bool
 }
@@ -350,56 +348,57 @@ function objSame (obj,newObj) {
         return false;
     }
     for(let key in obj) {
-        if ( obj[key] instanceof Object) {
+        if ( isObject(obj[key])) {
             bol = objSame(obj[key],newObj[key]);
             if (!bol) {
                 break;
             }
-        } else if ( obj[key] instanceof Array) {
+        } else if ( isArray(obj[key])) {
             bol = arrSame(obj[key],newObj[key])
             if (!bol) {
                 break;
             }
-        } else if (obj[key] != newObj[key]) {
-                // 比较两个key是否相同
-            let objKeys = Object.keys(obj)
-            let newObjKeys = Object.keys(newObj)
-            for (let index = 0; index < objKeys.length; index++) {
-                if (objKeys[index] != newObjKeys[index]) {
-                    bol =  false;  
-                    break;
-                } 
-            }
-        }
+        } 
+        
+        // else if (obj[key] != newObj[key]) {
+        //         // 比较两个key是否相同
+        //     let objKeys = Object.keys(obj)
+        //     let newObjKeys = Object.keys(newObj)
+        //     for (let index = 0; index < objKeys.length; index++) {
+        //         if (objKeys[index] != newObjKeys[index]) {
+        //             bol =  false;  
+        //             break;
+        //         } 
+        //     }
+        // }
     }
     return bol
 }
 
 /// 验证两个数组是否相同
 /**
- * @param {string | any[]} arr
+ * @param {string | any[]} oldArr
  * @param {string | any[]} newArr
  */
-function arrSame (arr,newArr) {
+function arrSame (oldArr,newArr) {
     let bol = true;
-    if (arr.length != newArr.length) {
-        return false;
-    }
-    for (let i = 0, n = arr.length;i < n; i++) {
-        if (arr[i] instanceof Array) {
-            bol = arrSame(arr[i],newArr[i])
+    let count = oldArr.length > newArr.length ? newArr.length:oldArr.length;
+    for (let i = 0, n = count;i < n; i++) {
+        if (isArray(oldArr[i])) {
+            bol = arrSame(oldArr[i],newArr[i])
             if (!bol) {
                 break;
             }
-        } else if (arr[i] instanceof Object) {
-            bol = objSame(arr[i],newArr[i])
+        } else if (isObject(oldArr[i])) {
+            bol = objSame(oldArr[i],newArr[i])
             if (!bol) {
                 break;
             }
-        }else if (arr[i] != newArr[i]) {
-            bol = false;
-            break;
         }
+        // else if (arr[i] != newArr[i]) {
+        //     bol = false;
+        //     break;
+        // }
     }
 
     return bol;
