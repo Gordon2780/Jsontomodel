@@ -3,7 +3,7 @@
 	"publisher": "qinkuan",
 	"displayName": "JsonToModel",
 	"description": "JsonToModel,Support dart",
-	"version": "0.0.23",
+	"version": "0.0.24",
 	"author": {
 		"name": "qink"
 	},

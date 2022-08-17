@@ -1,7 +1,8 @@
 # JSON-TO-MODEL README
 
 <br>json数据转模型，flutter开发支持将json转dart class
-<br> 如您遇到任问题，可在这里留言告诉我。https://marketplace.visualstudio.com/items?itemName=qinkuan.jsontomodel&ssr=false#review-details
+<br> 如您遇到任问题，可在<a href="https://marketplace.visualstudio.com/items?itemName=qinkuan.jsontomodel&ssr=false#review-details">留言板</a>告诉我，我会及时修复。
+
 
 # 功能
 
