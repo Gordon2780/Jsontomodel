@@ -154,8 +154,9 @@ function createMethod(keyName,object){
     }
     attString += '\n  }\n';
     if (enableSafe) {
-        attString += `\n  T ${methodName}<T>(dynamic oldValue, dynamic newValue) {\n    if (oldValue.runtimeType == newValue.runtimeType) { \n      return newValue;\n    }\n    return oldValue; \n  }\n\n` 
+        attString += `\n  T ${methodName}<T>(dynamic oldValue, dynamic newValue) {\n    if (oldValue.runtimeType == newValue.runtimeType) { \n      return newValue;\n    } else if ((oldValue is double) && (newValue is int)) { \n      return (newValue.toDouble() as T); \n    } \n    return oldValue; \n  }\n\n` 
     }
+
     if (enalbePrint) {
         printStr += '\\n}'
         attString += `\n  @override\n  String toString() {\n    final rawString = super.toString();\n    return rawString + '${printStr}';\n    }`

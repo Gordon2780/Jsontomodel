@@ -3,7 +3,7 @@
 	"publisher": "qinkuan",
 	"displayName": "JsonToModel",
 	"description": "JsonToModel,Support dart",
-	"version": "0.0.20",
+	"version": "0.0.23",
 	"author": {
 		"name": "qink"
 	},
@@ -15,7 +15,9 @@
 	],
 	"icon": "assets/extension-icon.png",
 	"activationEvents": [
-		"*"
+		"onCommand:extension.json-to-model",
+		"onCommand:extension.hump-named",
+		"onLanguage:dart"
 	],
 	"main": "./scr/extension.js",
 	"contributes": {

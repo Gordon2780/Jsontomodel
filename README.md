@@ -9,8 +9,8 @@
 <br>3、支持模型类内添加自定方法：设置-搜索-json转模型
 
 <br>使用方法：
-<br>1、粘贴json数据到文件，右键选择转换
-<br>2、选中需要重命名的关键字，右键选择转换
+<br>功能1、粘贴json数据到文件，右键选择转换
+<br>功能2、选中需要重命名的关键字，右键选择转换
 
 <pre>
 example1： 
@@ -36,6 +36,8 @@ example2：
 <pre>  T safe<T>(dynamic oldValue, dynamic newValue) {
     if (oldValue.runtimeType == newValue.runtimeType) {
       return newValue;
+    } else if ((oldValue is double) && (newValue is int)) { 
+      return (newValue.toDouble() as T); 
     }
     return oldValue;
   }</pre>
