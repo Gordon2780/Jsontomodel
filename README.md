@@ -8,26 +8,32 @@
 
 <br>1、下划线转驼峰重命名，快捷键：shift+cmd+, 
 <br>2、json数据转模型类，快捷键：comd + 3
-<br>3、支持模型类内添加自定方法：设置-搜索-json转模型
+<br>3、支持模型类内添加自定方法：设置 - 搜索 - JSON转模型
 
 <br>使用方法：
-<br>功能1、粘贴json数据到文件，右键选择转换
-<br>功能2、选中需要重命名的关键字，右键选择转换
+<br>功能1、粘贴json数据到文件，右键选择转换(comd/ctl + 3)
+<br>功能2、选中需要重命名的关键字，右键选择转换(shift + cmd/ctl + ,)
 
-<pre>
+
+
 <span style="color:#D17378">example1：</span>
+<pre>
 <span style="color:#04107B">data_list -> dataList</span>
-  
+</pre>  
 
 <span style="color:#D17378">example2：</span>
-{  <span style="color:#87308A">"code"</span>:<span style="color:#3D7CA3">0</span>,
-    <span style="color:#87308A">"message"</span>:<span style="color:#60B257">"successful"</span>,
-    <span style="color:#87308A">"data"</span>:{
-        <span style="color:#87308A">"name"</span>:<span style="color:#60B257">"张三"</span>,
-        <span style="color:#87308A">"age"</span>:<span style="color:#3D7CA3">18</span>
+
+```json
+{
+    "code": 0,
+    "message":"successful",
+    "data":{
+      "name":"张三",
+      "age":18
     }
 }
-</pre>
+```
+
 # 演示
 
 ![feature X](/assets/example.gif)
@@ -44,4 +50,5 @@
     <span style="color:#733B1E">}</span>
     <span style="color:#A123D4">return</span> <span style="color:#04107B">oldValue</span>;
   <span style="color:#733B1E">}</span> </pre>
+
 ![feature X](/assets/example.png)
