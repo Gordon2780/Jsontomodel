@@ -42,7 +42,7 @@ function setUserConfig(){
             if (ret.length == 0 || ret == '') {
                 ret = 'void'
             }
-            let mName = replacePropertyName(usrMethodObj['name'])
+            let mName = namedHumpProperty(usrMethodObj['name'])
             
             method = `\n  ${ret} ${mName}(${usrMethodObj['params'].join(',')}) {\n    ${usrMethodObj['imp']} \n  }\n\n`
         }
@@ -63,11 +63,11 @@ function starJsonToModel(editBuilder){
         vscode.window.showInformationMessage(`JSON转模型文件：json格式错误 ${e}`);
     }
     var result =  parseObject(jsonBbject,fileName);
-    console.log("转换结果：" + result );
+    // console.log("转换结果：" + result );
     // 从开始到结束，全量替换
     const end = new vscode.Position(vscode.window.activeTextEditor.document.lineCount + 1, 0);
     editBuilder.replace(new vscode.Range(new vscode.Position(0, 0), end), result);
-    vscode.window.showInformationMessage('JSON转模型文件');
+    vscode.window.showInformationMessage('JSON转模型文件已完成');
 }
 
 /// 获取根文件名字
@@ -101,8 +101,8 @@ function parseObject(value,fileName){
 
 ///创建类
 /**
- * @param {string} className
- * @param {boolean} [isRoot]
+ * @param {string} className 类名
+ * @param {boolean} [isRoot] 是否根类
  */
 function createClass(className,isRoot) {
     var attString = isRoot ? '': "}\n";
@@ -125,30 +125,36 @@ function createMethod(keyName,object){
         const value = values[index]
         const key = keys[index]
         
+        let namedHump = namedHumpProperty(key);
+
         if (isArray(value)) {
-            let propertyName = replacePropertyName(key)
-            propertyName = firstLowerWord(propertyName);
+            let propertyName = firstLowerWord(namedHump);
             var modelName = firstUpperWord(key)
-                printStr += `\\n    ${propertyName} = $${propertyName}`
+                printStr += `\\n    ${propertyName} = ${propertyName}`
                 attString += `    List ${propertyName}Items = json['${key}'] ?? [];\n`
                 attString += `    for (var item in ${propertyName}Items) {\n`
             if (isAllEqual(value) && arrayIsObject(value)) {
-                printStr += `\\n    ${propertyName} = $${propertyName}`
-                attString += `      ${propertyName}.add(${replacePropertyName(modelName)}Model.fromJson(${methodName}(<String, dynamic>{}, item)));\n    }\n`
+                printStr += `\\n    ${propertyName} = ${propertyName}`
+                attString += `      ${propertyName}.add(${namedHumpProperty(modelName)}Model.fromJson(${methodName}(<String, dynamic>{}, item)));\n    }\n`
             }else{
                 attString += `      ///my code... \n        ${propertyName}.add(item);\n    }\n`
             }
         }else if (isObject(value)) {
-            var modelName = firstUpperWord(key)
-            let propertyName = replacePropertyName(key)
-            propertyName = firstLowerWord(propertyName);
-            let reModelName = replacePropertyName(modelName)
-            printStr += `\\n    ${propertyName} = $${propertyName}`
-            attString += `    ${propertyName} = ${reModelName}Model.fromJson(${methodName}(<String, dynamic>{}, json['${key}']));\n`
+            
+            let propertyName = namedHump;
+            let className = namedHump;
+            if (isFirstLetterUpperCase(namedHump)) {
+                propertyName = firstLowerWord(namedHump)
+                className = `${namedHump}Model`
+            }else {
+                propertyName = namedHump
+                className = `${firstUpperWord(namedHump)}Model`
+            }
+            printStr += `\\n    ${propertyName} = ${propertyName}`
+            attString += `    ${propertyName} = ${className}.fromJson(${methodName}(<String, dynamic>{}, json['${key}']));\n`
         }else{
-            let propertyName = replacePropertyName(key)
-            propertyName = firstLowerWord(propertyName);
-            printStr += `\\n    ${propertyName} = $${propertyName}`
+            let propertyName = firstLowerWord(namedHump);
+            printStr += `\\n    ${propertyName} = ${propertyName}`
             attString += `    ${propertyName} = ${methodName}(${propertyName}, json['${key}']);\n`
         }
     }
@@ -179,6 +185,11 @@ function createProperty(fileName,object){
         // var className = fileName ;
         var keys = Object.keys(object);
         var values = Object.values(object);
+
+        if (keys.length == 0) {
+            attString += '\n  /// note: this JSON object has no keys \n'
+        }
+
         var waitAddClassDict = new Array();
         var waitAddObjcDict = new Array();
         for (let index = 0; index < keys.length; index++) {
@@ -234,7 +245,10 @@ function createProperty(fileName,object){
  */
 function addClass(value,keyName){
     var attString = ''
-    var modelName = replacePropertyName(firstUpperWord(keyName))
+    var modelName = namedHumpProperty(keyName)
+    if (!isFirstLetterUpperCase(modelName)) {
+        modelName = firstUpperWord(modelName)
+    }
     let className = `${modelName}Model`
     attString += createClass(className);
     attString += createProperty(className,value);
@@ -254,7 +268,7 @@ function addArrayClass(value,keyName){
         if (isAllEqual(value)) {
             var firstObject = value[0]
             if (isObject(firstObject)) {
-                modelName = replacePropertyName(firstUpperWord(keyName))
+                modelName = namedHumpProperty(firstUpperWord(keyName))
                 className = `${modelName}Model`
                 attString += createClass(className)
                 attString += createProperty(className,firstObject);
@@ -263,7 +277,7 @@ function addArrayClass(value,keyName){
             for (let index = 0; index < value.length; index++) {
                 const element = value[index];
                 if (isObject(element)) {
-                    modelName = replacePropertyName(firstUpperWord(keyName))
+                    modelName = namedHumpProperty(firstUpperWord(keyName))
                     className = `${modelName}Model${index}`
                     attString += createClass(className)
                     attString += createProperty(className,element);
@@ -278,9 +292,8 @@ function addArrayClass(value,keyName){
 // 创建属性字符串
 function createPropertyString(key,value){
     var attString = '\n';
-    let propertyName = replacePropertyName(key)
-    
-    propertyName = firstLowerWord(propertyName);
+    let namedHump = namedHumpProperty(key);
+    let propertyName = firstLowerWord(namedHump);
 
     if (isBool(value)) {
         attString += `  bool ${propertyName} = false;\n`;
@@ -295,17 +308,23 @@ function createPropertyString(key,value){
     }else if ( isArray(value)){
         if (isAllEqual(value) && arrayIsObject(value)) {
             var className = firstUpperWord(key)
-            var classNameModel = `${replacePropertyName(className)}Model`;
+            var classNameModel = `${namedHumpProperty(className)}Model`;
             attString += `  List ${propertyName} = <${classNameModel}>[];\n`
         }else{
             attString += `  List ${propertyName} = [];\n`
         }
     }else if (isObject(value)){
-        let className = firstUpperWord(key)
-        let classNameModel = replacePropertyName(className)
-        attString += `  ${classNameModel}Model ${propertyName} = ${classNameModel}Model();\n`;
+        let className = key;
+        if (isFirstLetterUpperCase(namedHump)) {
+            propertyName = firstLowerWord(namedHump)
+            className = `${namedHump}Model`
+        }else {
+            propertyName = namedHump
+            className = `${firstUpperWord(namedHump)}Model`
+        }
+        attString += `  ${className} ${propertyName} = ${className}();\n`;
     }else if (isNull(value)){
-        attString += `  var ${propertyName};\n`;
+        attString += `  /// note: json value is null \n  var ${propertyName};\n`;
     }else{
         attString += `  var ${propertyName} = ${value};\n`;
     }
@@ -421,7 +440,7 @@ function arrayIsObject(array){
 /**
  * @param {string} word
  */
-function replacePropertyName(word){
+function namedHumpProperty(word){
     if (word.indexOf("_") != -1) {
         let array = word.split('_');
         if (array.length > 1) {
@@ -447,12 +466,16 @@ function firstUpperWord(word){
 
 ///首字母小写
 function firstLowerWord(word){
-    if (word.charAt(0) >= 'A' && word.charAt(0) <= 'Z') {
+    if (isFirstLetterUpperCase(word)) {
         return word.replace(word.charAt(0),word.charAt(0).toLowerCase());
     }
     return word
 }
 
+/// 首字母是否大写
+function isFirstLetterUpperCase(word){
+    return (word.charAt(0) >= 'A' && word.charAt(0) <= 'Z')
+}
 
 function isBool(value){
     return typeof value === 'boolean';

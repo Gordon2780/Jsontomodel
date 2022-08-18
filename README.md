@@ -34,7 +34,7 @@ example2：
 
 # 提示
 
-如果项目中添加了如下全局方法，可在设置关闭自动添加安全取值方法
+<p style="color:red;"><strong>如果项目中添加了如下全局方法，可在设置关闭自动添加安全取值方法</strong></p>
 <pre>  T safe<T>(dynamic oldValue, dynamic newValue) {
     if (oldValue.runtimeType == newValue.runtimeType) {
       return newValue;
