@@ -75,14 +75,17 @@ function getFileName(){
     const fileNames = vscode.window.activeTextEditor.document.fileName.split('/');
     if (fileNames.length > 0 && fileNames[fileNames.length-1].length > 0) {
         const fileName = fileNames[fileNames.length-1].split('.')[0];
-        var name = '';
-        if (fileName.concat('_')) {
+        if (fileName.indexOf("_") != -1) {
+            let name = '';
             var arr = fileName.split('_');
             for (var word of arr) {
                 name += firstUpperWord(word);
             }
         return name;
+        }else if (!isFirstLetterUpperCase(fileName)){
+            return firstUpperWord(fileName)
         }
+        return fileName
     }
     return 'ReplaceMe'
 }
@@ -106,7 +109,7 @@ function parseObject(value,fileName){
  */
 function createClass(className,isRoot) {
     var attString = isRoot ? '': "}\n";
-    attString += `\nclass ${className} {`
+    attString += `\nclass ${className} {\n`
     return attString ;
 }
 
@@ -120,23 +123,24 @@ function createMethod(keyName,object){
     var keys = Object.keys(object);
     var values = Object.values(object);
 
-    var printStr = '\\n{'    
+    var printStr = '{'    
     for (let index = 0; index < values.length; index++) {
         const value = values[index]
         const key = keys[index]
+        const last = (index == values.length - 1)
         
         let namedHump = namedHumpProperty(key);
 
         if (isArray(value)) {
             let propertyName = firstLowerWord(namedHump);
             var modelName = firstUpperWord(key)
-                printStr += `\\n    ${propertyName} = ${propertyName}`
                 attString += `    List ${propertyName}Items = json['${key}'] ?? [];\n`
                 attString += `    for (var item in ${propertyName}Items) {\n`
             if (isAllEqual(value) && arrayIsObject(value)) {
-                printStr += `\\n    ${propertyName} = ${propertyName}`
+                printStr += createFormattedPrint(propertyName,value,last)
                 attString += `      ${propertyName}.add(${namedHumpProperty(modelName)}Model.fromJson(${methodName}(<String, dynamic>{}, item)));\n    }\n`
             }else{
+                printStr += createFormattedPrint(propertyName,value,last)
                 attString += `      ///my code... \n        ${propertyName}.add(item);\n    }\n`
             }
         }else if (isObject(value)) {
@@ -150,22 +154,23 @@ function createMethod(keyName,object){
                 propertyName = namedHump
                 className = `${firstUpperWord(namedHump)}Model`
             }
-            printStr += `\\n    ${propertyName} = ${propertyName}`
+            printStr += createFormattedPrint(propertyName,'obj',last)
             attString += `    ${propertyName} = ${className}.fromJson(${methodName}(<String, dynamic>{}, json['${key}']));\n`
         }else{
             let propertyName = firstLowerWord(namedHump);
-            printStr += `\\n    ${propertyName} = ${propertyName}`
+            printStr += createFormattedPrint(propertyName,value,last)
             attString += `    ${propertyName} = ${methodName}(${propertyName}, json['${key}']);\n`
         }
     }
     attString += '\n  }\n';
     if (enableSafe) {
-        attString += `\n  T ${methodName}<T>(dynamic oldValue, dynamic newValue) {\n    if (oldValue.runtimeType == newValue.runtimeType) { \n      return newValue;\n    } else if ((oldValue is double) && (newValue is int)) { \n      return (newValue.toDouble() as T); \n    } \n    return oldValue; \n  }\n\n` 
+        attString += `\n  T ${methodName}<T>(dynamic oldValue, dynamic newValue) {\n    if (oldValue.runtimeType == newValue.runtimeType || (oldValue is Map && newValue is Map) || oldValue == null) { \n      return newValue;\n    } else if ((oldValue is double) && (newValue is int)) { \n      return (newValue.toDouble() as T); \n    } \n    return oldValue; \n  }\n\n` 
     }
 
     if (enalbePrint) {
         printStr += '\\n}'
-        attString += `\n  @override\n  String toString() {\n    final rawString = super.toString();\n    return rawString + '${printStr}';\n    }`
+        attString += `  @override\n  String toString() {\n    super.toString();\n    return '${printStr}';\n  }\n`
+        // attString += `  @override\n  String toString() {\n    final rawString = super.toString();\n    return rawString + '${printStr}';\n  }\n`
     }
 
 
@@ -173,6 +178,24 @@ function createMethod(keyName,object){
         attString += method
     }
     return attString
+}
+
+/// 格式打印
+function createFormattedPrint(property,value,isLast){
+    if (enalbePrint) {
+        let printString =  `\\n    \\"${property}\\" : $${property}`;
+        if (value == 'obj') {
+            printString = `\\n    \\"${property}\\" : $\{${property}.toString()\}`;
+        }else if (isString(value)){
+            printString =  `\\n    \\"${property}\\" : \\"$${property}\\"`; 
+        }else if (isNumber(value)){
+            printString =  `\\n    \\"${property}\\" : $${property}`; 
+        }
+        if (!isLast) {
+            printString += ","
+        }
+        return  printString
+    }
 }
 
 // 创建属性
@@ -324,7 +347,7 @@ function createPropertyString(key,value){
         }
         attString += `  ${className} ${propertyName} = ${className}();\n`;
     }else if (isNull(value)){
-        attString += `  /// note: json value is null \n  var ${propertyName};\n`;
+        attString += `  /// note: json value is null \n  dynamic ${propertyName};\n`;
     }else{
         attString += `  var ${propertyName} = ${value};\n`;
     }
@@ -460,8 +483,11 @@ function namedHumpProperty(word){
  * @param {string} word
  */
 function firstUpperWord(word){
-    var lowerWord = word.toLowerCase();
-    return lowerWord.replace(lowerWord.charAt(0),lowerWord.charAt(0).toUpperCase());
+    if (!isFirstLetterUpperCase(word)) {
+        return word.replace(word.charAt(0),word.charAt(0).toUpperCase()); 
+    }
+    // var lowerWord = word.toLowerCase();
+    return word
 }
 
 ///首字母小写
