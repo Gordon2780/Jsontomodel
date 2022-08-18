@@ -15,15 +15,16 @@
 <br>功能2、选中需要重命名的关键字，右键选择转换
 
 <pre>
-example1： 
-data_list -> dataList
+<span style="color:#D17378">example1：</span>
+<span style="color:#04107B">data_list -> dataList</span>
+  
 
-example2：
-{  "code":0,
-    "message":"successful",
-    "data":{
-        "name":"张三",
-        "age":18
+<span style="color:#D17378">example2：</span>
+{  <span style="color:#87308A">"code"</span>:<span style="color:#3D7CA3">0</span>,
+    <span style="color:#87308A">"message"</span>:<span style="color:#60B257">"successful"</span>,
+    <span style="color:#87308A">"data"</span>:{
+        <span style="color:#87308A">"name"</span>:<span style="color:#60B257">"张三"</span>,
+        <span style="color:#87308A">"age"</span>:<span style="color:#3D7CA3">18</span>
     }
 }
 </pre>
@@ -35,12 +36,12 @@ example2：
 # 提示
 
 <p style="color:red;"><strong>如果项目中添加了如下全局方法，可在设置关闭自动添加安全取值方法</strong></p>
-<pre>  T safe<T>(dynamic oldValue, dynamic newValue) {
-    if (oldValue.runtimeType == newValue.runtimeType) {
-      return newValue;
-    } else if ((oldValue is double) && (newValue is int)) { 
-      return (newValue.toDouble() as T); 
-    }
-    return oldValue;
-  }</pre>
+<pre>  <span style="color:#417D97">T</span> <span style="color:#733B1E">safe</span><T><span style="color:#733B1E">(</span><span style="color:#417D97">dynamic</span> <span style="color:#04107B">oldValue</span>, <span style="color:#417D97">dynamic</span> <span style="color:#04107B">newValue</span><span style="color:#733B1E">)</span> <span style="color:#733B1E">{</span>
+    if <span style="color:#733B1E">(</span><span style="color:#04107B">oldValue.runtimeType == newValue.runtimeType</span><span style="color:#733B1E">)</span> <span style="color:#733B1E">{</span>
+      <span style="color:#A123D4">return</span> <span style="color:#04107B">newValue</span>;
+    <span style="color:#733B1E">}</span> <span style="color:#A123D4">else if</span> <span style="color:#733B1E">(</span><span style="color:#733B1E">(</span><span style="color:#04107B">oldValue</span> <span style="color:#3938F5">is</span> <span style="color:#417D97">double</span>) && (<span style="color:#04107B">newValue</span> <span style="color:#3938F5">is</span> <span style="color:#417D97">int</span><span style="color:#733B1E">)</span><span style="color:#733B1E">)</span> <span style="color:#733B1E">{</span> 
+      <span style="color:#A123D4">return</span> <span style="color:#733B1E">(</span><span style="color:#04107B">newValue</span>.<span style="color:#733B1E">toDouble()</span> <span style="color:#3938F5">as</span> <span style="color:#417D97">T</span><span style="color:#733B1E">)</span>; 
+    <span style="color:#733B1E">}</span>
+    <span style="color:#A123D4">return</span> <span style="color:#04107B">oldValue</span>;
+  <span style="color:#733B1E">}</span> </pre>
 ![feature X](/assets/example.png)
