@@ -42,13 +42,16 @@
 # 提示
 
 <p style="color:red;"><strong>如果项目中添加了如下全局方法，可在设置关闭自动添加安全取值方法</strong></p>
-<pre>  <span style="color:#417D97">T</span> <span style="color:#733B1E">safe</span><T><span style="color:#733B1E">(</span><span style="color:#417D97">dynamic</span> <span style="color:#04107B">oldValue</span>, <span style="color:#417D97">dynamic</span> <span style="color:#04107B">newValue</span><span style="color:#733B1E">)</span> <span style="color:#733B1E">{</span>
-    if <span style="color:#733B1E">(</span><span style="color:#04107B">oldValue.runtimeType == newValue.runtimeType</span><span style="color:#733B1E">)</span> <span style="color:#733B1E">{</span>
-      <span style="color:#A123D4">return</span> <span style="color:#04107B">newValue</span>;
-    <span style="color:#733B1E">}</span> <span style="color:#A123D4">else if</span> <span style="color:#733B1E">(</span><span style="color:#733B1E">(</span><span style="color:#04107B">oldValue</span> <span style="color:#3938F5">is</span> <span style="color:#417D97">double</span>) && (<span style="color:#04107B">newValue</span> <span style="color:#3938F5">is</span> <span style="color:#417D97">int</span><span style="color:#733B1E">)</span><span style="color:#733B1E">)</span> <span style="color:#733B1E">{</span> 
-      <span style="color:#A123D4">return</span> <span style="color:#733B1E">(</span><span style="color:#04107B">newValue</span>.<span style="color:#733B1E">toDouble()</span> <span style="color:#3938F5">as</span> <span style="color:#417D97">T</span><span style="color:#733B1E">)</span>; 
-    <span style="color:#733B1E">}</span>
-    <span style="color:#A123D4">return</span> <span style="color:#04107B">oldValue</span>;
-  <span style="color:#733B1E">}</span> </pre>
+
+```dart
+  T safe<T>(dynamic oldValue, dynamic newValue) {
+    if (oldValue.runtimeType == newValue.runtimeType || (oldValue is Map && newValue is Map) || oldValue == null) {
+      return newValue;
+    } else if ((oldValue is double) && (newValue is int)) {
+      return (newValue.toDouble() as T);
+    }
+    return oldValue;
+  }
+```
 
 ![feature X](/assets/example.png)
