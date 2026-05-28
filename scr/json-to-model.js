@@ -1,4 +1,3 @@
-const { close } = require('inspector');
 const vscode = require('vscode');
 
 var methodName = 'safe'
@@ -119,7 +118,7 @@ function createClass(className,isRoot) {
  * @param {{ [s: string]: any; } | ArrayLike<any>} object
  */
 function createMethod(keyName,object){
-    var attString = `\n  ${keyName}();\n\n  ${keyName}.fromJson(Map json) {\n`
+    var attString = `\n  ${keyName}();\n\n  factory ${keyName}.fromJson(dynamic json) {\n    if (json is ${keyName}) {\n      return json;\n    }\n    final model = ${keyName}();\n    if (json is Map) {\n      model._fromJson(json);\n    }\n    return model;\n  }\n\n  void _fromJson(Map json) {\n`
     var keys = Object.keys(object);
     var values = Object.values(object);
 
@@ -138,7 +137,7 @@ function createMethod(keyName,object){
                 attString += `    for (var item in ${propertyName}Items) {\n`
             if (isAllEqual(value) && arrayIsObject(value)) {
                 printStr += createFormattedPrint(propertyName,value,last)
-                attString += `      ${propertyName}.add(${namedHumpProperty(modelName)}Model.fromJson(${methodName}(<String, dynamic>{}, item)));\n    }\n`
+                attString += `      ${propertyName}.add(${namedHumpProperty(modelName)}Model.fromJson(item));\n    }\n`
             }else{
                 printStr += createFormattedPrint(propertyName,value,last)
                 attString += `      ///my code... \n        ${propertyName}.add(item);\n    }\n`
@@ -155,7 +154,7 @@ function createMethod(keyName,object){
                 className = `${firstUpperWord(namedHump)}Model`
             }
             printStr += createFormattedPrint(propertyName,'obj',last)
-            attString += `    ${propertyName} = ${className}.fromJson(${methodName}(<String, dynamic>{}, json['${key}']));\n`
+            attString += `    ${propertyName} = ${className}.fromJson(json['${key}']);\n`
         }else{
             let propertyName = firstLowerWord(namedHump);
             printStr += createFormattedPrint(propertyName,value,last)
@@ -530,5 +529,6 @@ function isNull(value){
     return value === null;
 }
 
-
-
+module.exports._test = {
+    parseObject,
+};
